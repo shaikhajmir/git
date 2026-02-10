@@ -159,3 +159,5 @@ export default function NetworkGraph({ network }) {
 # Change commit 79 by Charlie Coder
 
 # Change commit 87 by Alice Developer
+
+# Change commit 88 by Diana Hacker
