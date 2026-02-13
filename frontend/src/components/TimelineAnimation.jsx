@@ -180,3 +180,5 @@ export default function TimelineAnimation({ commits }) {
 # Change commit 87 by Alice Developer
 
 # Change commit 101 by Bob Engineer
+
+# Change commit 108 by Charlie Coder
