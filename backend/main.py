@@ -90,8 +90,8 @@ def extract_commit_data(repo, limit=1000):
     hotspot_files = sorted(file_changes.items(), key=lambda x: x[1], reverse=True)[:50]
     complexity_scores = {}
     
-    for filename, count in hotspot_files:
-        if filename.endswith('.py'):
+    for filename, change_count in hotspot_files:
+        if filename.endswith('.py') or filename.endswith('.jsx'):
             try:
                 # Read from current HEAD tree
                 blob = repo.head.commit.tree / filename
@@ -100,11 +100,21 @@ def extract_commit_data(repo, limit=1000):
                 score = sum(func.complexity for func in v.functions) + sum(cls.real_complexity for cls in v.classes)
                 complexity_scores[filename] = score
             except Exception:
-                complexity_scores[filename] = 0
+                # Simple fallback: lines of code / 10
+                try:
+                    blob = repo.head.commit.tree / filename
+                    content = blob.data_stream.read().decode('utf-8')
+                    complexity_scores[filename] = len(content.splitlines()) // 5
+                except:
+                    complexity_scores[filename] = 10
         else:
-            # We can only use Radon on Python files easily
-            # For others, we might just map to file size or leave 0
-            complexity_scores[filename] = 0
+            # Simple fallback for non-python files
+            try:
+                blob = repo.head.commit.tree / filename
+                content = blob.data_stream.read().decode('utf-8')
+                complexity_scores[filename] = len(content.splitlines()) // 5
+            except:
+                complexity_scores[filename] = 5
 
     return {
         "commits": commits,
@@ -130,6 +140,29 @@ def extract_commit_data(repo, limit=1000):
 def parse_repo(req: ParseRequest):
     repo_path = req.repo_path
     
+    if repo_path.startswith("http://") or repo_path.startswith("https://"):
+        import tempfile
+        import shutil
+        temp_dir = tempfile.mkdtemp()
+        try:
+            repo = git.Repo.clone_from(repo_path, temp_dir)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to clone repository: {str(e)}")
+            
+        data = extract_commit_data(repo, limit=1000)
+        repo_data_cache[repo_path] = data
+        
+        try:
+            repo.close()
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except:
+            pass
+            
+        return {
+            "message": "Repository cloned and parsed successfully",
+            "stats": data["stats"]
+        }
+        
     if not os.path.exists(repo_path):
         raise HTTPException(status_code=400, detail="Repository path does not exist")
         
@@ -142,7 +175,7 @@ def parse_repo(req: ParseRequest):
     repo_data_cache[repo_path] = data
     
     return {
-        "m_message": "Repository parsed successfully",
+        "message": "Repository parsed successfully",
         "stats": data["stats"]
     }
 
@@ -180,7 +213,7 @@ def get_network(repo_path: str):
                 
     for pair, weight in author_coedits.items():
         # Minimum threshold to reduce noise
-        if weight > 2:
+        if weight > 1:
             links.append({"source": pair[0], "target": pair[1], "value": weight})
             
     return {
@@ -193,91 +226,3 @@ def get_overview(repo_path: str):
     if repo_path not in repo_data_cache:
         raise HTTPException(status_code=404, detail="Repository not parsed yet")
     return repo_data_cache[repo_path]["stats"]
-
-# Change commit 4 by Alice Developer
-
-# Change commit 7 by Alice Developer
-
-# Change commit 14 by Bob Engineer
-
-# Change commit 16 by Alice Developer
-
-# Change commit 19 by Charlie Coder
-
-# Change commit 22 by Diana Hacker
-
-# Change commit 24 by Alice Developer
-
-# Change commit 27 by Bob Engineer
-
-# Change commit 30 by Diana Hacker
-
-# Change commit 31 by Alice Developer
-
-# Change commit 33 by Alice Developer
-
-# Change commit 36 by Bob Engineer
-
-# Change commit 37 by Charlie Coder
-
-# Change commit 40 by Bob Engineer
-
-# Change commit 41 by Alice Developer
-
-# Change commit 44 by Alice Developer
-
-# Change commit 54 by Charlie Coder
-
-# Change commit 62 by Charlie Coder
-
-# Change commit 75 by Charlie Coder
-
-# Change commit 82 by Diana Hacker
-
-# Change commit 92 by Charlie Coder
-
-# Change commit 95 by Charlie Coder
-
-# Change commit 96 by Bob Engineer
-
-# Change commit 99 by Bob Engineer
-
-# Change commit 100 by Bob Engineer
-
-# Change commit 105 by Alice Developer
-
-# Change commit 106 by Diana Hacker
-
-# Change commit 108 by Charlie Coder
-
-# Change commit 113 by Bob Engineer
-
-# Change commit 115 by Alice Developer
-
-# Change commit 116 by Charlie Coder
-
-# Change commit 120 by Diana Hacker
-
-# Change commit 125 by Bob Engineer
-
-# Change commit 127 by Diana Hacker
-
-# Change commit 138 by Diana Hacker
-
-# Change commit 143 by Charlie Coder
-
-# Change commit 146 by Diana Hacker
-
-# Change commit 159 by Alice Developer
-
-# Change commit 160 by Bob Engineer
-
-# Change commit 169 by Bob Engineer
-
-# Change commit 179 by Alice Developer
-
-# Change commit 187 by Charlie Coder
-
-# Change commit 189 by Bob Engineer
-
-# Change commit 199 by Charlie Coder

@@ -63,6 +63,7 @@ body {
   font-weight: 700;
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
   align-items: center;
@@ -175,11 +176,13 @@ body {
 input[type=range] {
   flex: 1;
   -webkit-appearance: none;
+  appearance: none;
   background: transparent;
 }
 
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   height: 16px;
   width: 16px;
   border-radius: 50%;
@@ -261,8 +264,13 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Heatmap Items */
@@ -278,10 +286,12 @@ input[type=range]::-webkit-slider-runnable-track {
 .file-list::-webkit-scrollbar {
   width: 6px;
 }
+
 .file-list::-webkit-scrollbar-track {
   background: var(--bg-secondary);
   border-radius: 4px;
 }
+
 .file-list::-webkit-scrollbar-thumb {
   background: var(--border-color);
   border-radius: 4px;
@@ -305,9 +315,11 @@ input[type=range]::-webkit-slider-runnable-track {
 .file-item.high-risk {
   border-left-color: var(--danger);
 }
+
 .file-item.med-risk {
   border-left-color: var(--warning);
 }
+
 .file-item.low-risk {
   border-left-color: var(--success);
 }
@@ -343,97 +355,3 @@ input[type=range]::-webkit-slider-runnable-track {
     grid-template-columns: 1fr;
   }
 }
-
-# Change commit 0 by Bob Engineer
-
-# Change commit 1 by Diana Hacker
-
-# Change commit 6 by Bob Engineer
-
-# Change commit 10 by Bob Engineer
-
-# Change commit 12 by Charlie Coder
-
-# Change commit 13 by Bob Engineer
-
-# Change commit 15 by Alice Developer
-
-# Change commit 20 by Alice Developer
-
-# Change commit 22 by Diana Hacker
-
-# Change commit 23 by Diana Hacker
-
-# Change commit 24 by Alice Developer
-
-# Change commit 25 by Alice Developer
-
-# Change commit 34 by Bob Engineer
-
-# Change commit 38 by Charlie Coder
-
-# Change commit 42 by Charlie Coder
-
-# Change commit 43 by Alice Developer
-
-# Change commit 52 by Diana Hacker
-
-# Change commit 58 by Alice Developer
-
-# Change commit 59 by Alice Developer
-
-# Change commit 62 by Charlie Coder
-
-# Change commit 72 by Alice Developer
-
-# Change commit 75 by Charlie Coder
-
-# Change commit 76 by Diana Hacker
-
-# Change commit 81 by Charlie Coder
-
-# Change commit 83 by Alice Developer
-
-# Change commit 94 by Alice Developer
-
-# Change commit 102 by Alice Developer
-
-# Change commit 108 by Charlie Coder
-
-# Change commit 110 by Diana Hacker
-
-# Change commit 118 by Bob Engineer
-
-# Change commit 126 by Charlie Coder
-
-# Change commit 130 by Alice Developer
-
-# Change commit 134 by Diana Hacker
-
-# Change commit 135 by Bob Engineer
-
-# Change commit 147 by Charlie Coder
-
-# Change commit 149 by Bob Engineer
-
-# Change commit 151 by Bob Engineer
-
-# Change commit 165 by Bob Engineer
-
-# Change commit 166 by Charlie Coder
-
-# Change commit 167 by Diana Hacker
-
-# Change commit 170 by Alice Developer
-
-# Change commit 172 by Alice Developer
-
-# Change commit 183 by Bob Engineer
-
-# Change commit 185 by Charlie Coder
-
-# Change commit 189 by Bob Engineer
-
-# Change commit 190 by Bob Engineer
-
-# Change commit 199 by Charlie Coder

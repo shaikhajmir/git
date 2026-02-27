@@ -7,110 +7,116 @@ export default function NetworkGraph({ network }) {
     useEffect(() => {
         if (!network || !network.nodes || network.nodes.length === 0) return;
 
-        const width = containerRef.current.clientWidth;
-        const height = 350;
+        // Slight delay to ensure container is fully rendered for width calculation
+        const timer = setTimeout(() => {
+            if (!containerRef.current) return;
+            const width = containerRef.current.clientWidth || 600;
+            const height = 350;
 
-        // Clear previous SVG
-        d3.select(containerRef.current).selectAll('*').remove();
+            // Clear previous SVG
+            d3.select(containerRef.current).selectAll('*').remove();
 
-        const svg = d3.select(containerRef.current)
-            .append('svg')
-            .attr('width', width)
-            .attr('height', height)
-            .attr('viewBox', [0, 0, width, height]);
+            const svg = d3.select(containerRef.current)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .attr('viewBox', [0, 0, width, height]);
 
-        // Handle deep copy for safety in React strict mode
-        const nodes = network.nodes.map(d => ({ ...d }));
-        const links = network.links.map(d => ({ ...d }));
+            // Handle deep copy for safety in React strict mode
+            const nodes = network.nodes.map(d => ({ ...d }));
+            const links = network.links.map(d => ({ ...d }));
 
-        const simulation = d3.forceSimulation(nodes)
-            .force('link', d3.forceLink(links).id(d => d.id).distance(100))
-            .force('charge', d3.forceManyBody().strength(-200))
-            .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collision', d3.forceCollide().radius(20));
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-200))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(30));
 
-        // Links
-        const link = svg.append('g')
-            .selectAll('line')
-            .data(links)
-            .join('line')
-            .attr('class', 'd3-link')
-            .attr('stroke', 'rgba(255, 255, 255, 0.2)')
-            .attr('stroke-width', d => Math.sqrt(d.value));
+            // Links
+            const link = svg.append('g')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('class', 'd3-link')
+                .attr('stroke', 'rgba(255, 255, 255, 0.2)')
+                .attr('stroke-width', d => Math.sqrt(d.value));
 
-        // Nodes
-        const maxSize = Math.max(...nodes.map(n => n.val), 1);
+            // Nodes
+            const maxSize = Math.max(...nodes.map(n => n.val), 1);
 
-        const node = svg.append('g')
-            .selectAll('circle')
-            .data(nodes)
-            .join('circle')
-            .attr('class', 'd3-node')
-            .attr('r', d => Math.max(5, (d.val / maxSize) * 20)) // size based on commit count
-            .attr('fill', d => d3.schemeSet3[Math.abs(hashString(d.id)) % 10])
-            .call(drag(simulation));
+            const node = svg.append('g')
+                .selectAll('circle')
+                .data(nodes)
+                .join('circle')
+                .attr('class', 'd3-node')
+                .attr('r', d => Math.max(8, (d.val / maxSize) * 25)) // size based on commit count
+                .attr('fill', d => d3.schemeSet3[Math.abs(hashString(d.id)) % 10])
+                .call(drag(simulation));
 
-        // Labels
-        const labels = svg.append('g')
-            .selectAll('text')
-            .data(nodes)
-            .join('text')
-            .attr('dx', 15)
-            .attr('dy', '.35em')
-            .attr('fill', '#fff')
-            .attr('font-size', '10px')
-            .text(d => d.id);
+            // Labels
+            const labels = svg.append('g')
+                .selectAll('text')
+                .data(nodes)
+                .join('text')
+                .attr('dx', 15)
+                .attr('dy', '.35em')
+                .attr('fill', '#fff')
+                .attr('font-size', '12px')
+                .attr('font-weight', '500')
+                .style('pointer-events', 'none')
+                .text(d => d.id);
 
-        // Tooltips
-        node.append('title')
-            .text(d => `${d.id} (${d.val} commits)`);
+            // Tooltips
+            node.append('title')
+                .text(d => `${d.id} (${d.val} commits)`);
 
-        simulation.on('tick', () => {
-            link
-                .attr('x1', d => d.source.x)
-                .attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x)
-                .attr('y2', d => d.target.y);
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
 
-            node
-                .attr('cx', d => Math.max(15, Math.min(width - 15, d.x)))
-                .attr('cy', d => Math.max(15, Math.min(height - 15, d.y)));
+                node
+                    .attr('cx', d => Math.max(15, Math.min(width - 15, d.x)))
+                    .attr('cy', d => Math.max(15, Math.min(height - 15, d.y)));
 
-            labels
-                .attr('x', d => Math.max(15, Math.min(width - 15, d.x)))
-                .attr('y', d => Math.max(15, Math.min(height - 15, d.y)));
-        });
+                labels
+                    .attr('x', d => Math.max(15, Math.min(width - 15, d.x)))
+                    .attr('y', d => Math.max(15, Math.min(height - 15, d.y)));
+            });
 
-        // Helper drag function
-        function drag(simulation) {
-            function dragstarted(event) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                event.subject.fx = event.subject.x;
-                event.subject.fy = event.subject.y;
+            // Helper drag function
+            function drag(simulation) {
+                function dragstarted(event) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    event.subject.fx = event.subject.x;
+                    event.subject.fy = event.subject.y;
+                }
+                function dragged(event) {
+                    event.subject.fx = event.x;
+                    event.subject.fy = event.y;
+                }
+                function dragended(event) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    event.subject.fx = null;
+                    event.subject.fy = null;
+                }
+                return d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended);
             }
-            function dragged(event) {
-                event.subject.fx = event.x;
-                event.subject.fy = event.y;
-            }
-            function dragended(event) {
-                if (!event.active) simulation.alphaTarget(0);
-                event.subject.fx = null;
-                event.subject.fy = null;
-            }
-            return d3.drag()
-                .on('start', dragstarted)
-                .on('drag', dragged)
-                .on('end', dragended);
-        }
 
-        // Helper hash function for colors
-        function hashString(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            return hash;
-        }
+            // Helper hash function for colors
+            function hashString(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                return hash;
+            }
+        }, 100);
 
-        return () => simulation.stop();
+        return () => clearTimeout(timer);
     }, [network]);
 
     if (!network || !network.nodes || network.nodes.length === 0) {
@@ -119,85 +125,3 @@ export default function NetworkGraph({ network }) {
 
     return <div ref={containerRef} className="viz-container"></div>;
 }
-
-# Change commit 2 by Diana Hacker
-
-# Change commit 4 by Alice Developer
-
-# Change commit 6 by Bob Engineer
-
-# Change commit 11 by Alice Developer
-
-# Change commit 14 by Bob Engineer
-
-# Change commit 16 by Alice Developer
-
-# Change commit 17 by Diana Hacker
-
-# Change commit 21 by Charlie Coder
-
-# Change commit 26 by Bob Engineer
-
-# Change commit 28 by Charlie Coder
-
-# Change commit 34 by Bob Engineer
-
-# Change commit 37 by Charlie Coder
-
-# Change commit 40 by Bob Engineer
-
-# Change commit 56 by Charlie Coder
-
-# Change commit 60 by Bob Engineer
-
-# Change commit 66 by Bob Engineer
-
-# Change commit 69 by Diana Hacker
-
-# Change commit 70 by Bob Engineer
-
-# Change commit 79 by Charlie Coder
-
-# Change commit 87 by Alice Developer
-
-# Change commit 88 by Diana Hacker
-
-# Change commit 89 by Charlie Coder
-
-# Change commit 91 by Charlie Coder
-
-# Change commit 105 by Alice Developer
-
-# Change commit 106 by Diana Hacker
-
-# Change commit 118 by Bob Engineer
-
-# Change commit 128 by Diana Hacker
-
-# Change commit 137 by Diana Hacker
-
-# Change commit 140 by Bob Engineer
-
-# Change commit 143 by Charlie Coder
-
-# Change commit 148 by Charlie Coder
-
-# Change commit 153 by Bob Engineer
-
-# Change commit 156 by Bob Engineer
-
-# Change commit 157 by Charlie Coder
-
-# Change commit 159 by Alice Developer
-
-# Change commit 165 by Bob Engineer
-
-# Change commit 182 by Alice Developer
-
-# Change commit 185 by Charlie Coder
-
-# Change commit 191 by Alice Developer
-
-# Change commit 192 by Charlie Coder
-
-# Change commit 198 by Alice Developer
